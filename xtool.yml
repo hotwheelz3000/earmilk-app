@@ -3,3 +3,5 @@ bundleID: com.hotwheelz3000.Earmilk
 # The SwiftPM product used as the app. Also names the built .app/.ipa.
 # Change it with ./rename-app.sh rather than by hand.
 product: Earmilk
+# App icon: a 1024x1024 PNG with no transparency. Replace the file to change it.
+iconPath: Resources/AppIcon.png

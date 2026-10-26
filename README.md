@@ -2,7 +2,7 @@
 
 A native SwiftUI reader for the [Earmilk feed](https://hotwheelz3000.github.io/earmilk/). It loads `posts.json` from the `hotwheelz3000/earmilk` GitHub Pages site and shows each post's artwork, artist, song and genre. Tap a post for large artwork, an **Open in Spotify** button (a Spotify search for the artist and song, since the feed has no Spotify link) and a link to the Earmilk article. Pull to refresh, filter by genre from the pill bar or the filter menu, and pick System/Light/Dark from the **⋯** menu.
 
-The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`.
+The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`. The app icon is `Resources/AppIcon.png` (1024×1024 PNG, no transparency), set by `iconPath:` in `xtool.yml`; replace the file to use your own.
 
 ---
 
