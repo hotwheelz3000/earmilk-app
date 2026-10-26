@@ -1,4 +1,12 @@
-# iOS app template (xtool)
+# Earmilk
+
+A native SwiftUI reader for the [Earmilk feed](https://hotwheelz3000.github.io/earmilk/). It loads `posts.json` from the `hotwheelz3000/earmilk` GitHub Pages site and shows each post's artwork, artist, song and genre. Tap a post for large artwork, an **Open in Spotify** button (a Spotify search for the artist and song, since the feed has no Spotify link) and a link to the Earmilk article. Pull to refresh, filter by genre from the pill bar or the filter menu, and pick System/Light/Dark from the **⋯** menu.
+
+The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`.
+
+---
+
+## iOS app template (xtool)
 
 A starting point for SwiftUI iOS apps built with [xtool](https://xtool.sh): SwiftPM instead of an Xcode project, and a GitHub Actions workflow that builds an unsigned `.ipa` on every push to `main`.
 
