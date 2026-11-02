@@ -6,7 +6,7 @@ import Observation
 @MainActor
 @Observable
 final class PreviewPlayer {
-    enum State { case idle, loading, playing, paused, unavailable }
+    enum State: CaseIterable { case idle, loading, playing, paused, unavailable }
 
     private(set) var state: State = .idle
 
@@ -39,7 +39,8 @@ final class PreviewPlayer {
 
     private func start(_ url: URL) {
         #if os(iOS)
-        // .playback so the preview is heard even with the ring/silent switch on silent.
+        // .playback so the preview is heard with the silent switch on, and (with the
+        // "audio" background mode in Earmilk-Info.plist) keeps playing when you leave the app.
         try? AVAudioSession.sharedInstance().setCategory(.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
         #endif

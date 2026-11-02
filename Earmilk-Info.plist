@@ -7,6 +7,11 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<!-- Lets a preview keep playing after you leave the app. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<!-- Turns off iOS 26's glossy "Liquid Glass" look (glass bubbles behind the header buttons). -->
 	<key>UIDesignRequiresCompatibility</key>
 	<true/>

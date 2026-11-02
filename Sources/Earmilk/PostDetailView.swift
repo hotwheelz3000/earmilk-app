@@ -149,22 +149,13 @@ struct PostDetailView: View {
         Button {
             Task { await preview.toggle { await lookUp()?.preview } }
         } label: {
-            Group {
-                switch preview.state {
-                case .loading:
-                    HStack(spacing: 8) {
-                        ProgressView()
-                        Text("Finding preview…")
-                    }
-                case .playing:
-                    Label("Pause Preview", systemImage: "pause.fill")
-                case .paused:
-                    Label("Resume Preview", systemImage: "play.fill")
-                case .unavailable:
-                    Label("No preview available", systemImage: "speaker.slash")
-                case .idle:
-                    Label("Play 30-sec Preview", systemImage: "play.fill")
+            // Every possible label is laid out invisibly underneath, so the button is always
+            // as wide as its longest label and the column doesn't jump when the text changes.
+            ZStack {
+                ForEach(PreviewPlayer.State.allCases, id: \.self) { state in
+                    previewLabel(for: state).hidden()
                 }
+                previewLabel(for: preview.state)
             }
             .font(.headline)
             .frame(maxWidth: .infinity)
@@ -173,5 +164,24 @@ struct PostDetailView: View {
         .buttonBorderShape(.capsule)
         .tint(Theme.accent)
         .disabled(preview.state == .unavailable || preview.state == .loading)
+    }
+
+    @ViewBuilder
+    private func previewLabel(for state: PreviewPlayer.State) -> some View {
+        switch state {
+        case .loading:
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Finding preview…")
+            }
+        case .playing:
+            Label("Pause Preview", systemImage: "pause.fill")
+        case .paused:
+            Label("Resume Preview", systemImage: "play.fill")
+        case .unavailable:
+            Label("No preview available", systemImage: "speaker.slash")
+        case .idle:
+            Label("Play 30-sec Preview", systemImage: "play.fill")
+        }
     }
 }
