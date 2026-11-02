@@ -40,7 +40,7 @@ struct Post: Decodable, Hashable, Identifiable, Sendable {
     var spotifyAppURL: URL? { searchURL("spotify:search:") }
     var spotifyURL: URL? { searchURL("https://open.spotify.com/search/") }
 
-    var appleMusicAppURL: URL? { searchURL("music://music.apple.com/us/search?term=") }
+    /// Apple Music web search; the song page uses the exact song link from ITunesLookup when found.
     var appleMusicURL: URL? { searchURL("https://music.apple.com/us/search?term=") }
 
     var youTubeAppURL: URL? { searchURL("youtube://www.youtube.com/results?search_query=") }

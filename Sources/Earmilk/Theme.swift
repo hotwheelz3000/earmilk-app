@@ -1,0 +1,122 @@
+import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
+
+/// Colours and type styled after earmilk.com: charcoal background, white titles,
+/// grey body text, heavy wide capitals for labels, square buttons.
+/// Text colours meet WCAG AA contrast (4.5:1) on their backgrounds in light and dark mode.
+enum Theme {
+    static let background = Color(light: 0xFFFFFF, dark: 0x222222)
+    static let header = Color(light: 0xF4F4F4, dark: 0x1B1B1B)
+    static let divider = Color(light: 0xC8C8C8, dark: 0x4A4A4A)
+    /// Main text: #111 on white (18:1), white on #222 (15.9:1).
+    static let text = Color(light: 0x111111, dark: 0xFFFFFF)
+    /// Secondary text: #555 on white (7.5:1), #B3B3B3 on #222 (7.6:1).
+    static let secondaryText = Color(light: 0x555555, dark: 0xB3B3B3)
+    /// Swipe-action background for Save; white text on it is 4.7:1.
+    static let saveAction = Color(hex: 0x8A6500)
+}
+
+private func components(_ hex: UInt32) -> (red: Double, green: Double, blue: Double) {
+    (Double((hex >> 16) & 0xFF) / 255, Double((hex >> 8) & 0xFF) / 255, Double(hex & 0xFF) / 255)
+}
+
+extension Color {
+    init(hex: UInt32) {
+        let c = components(hex)
+        self.init(red: c.red, green: c.green, blue: c.blue)
+    }
+
+    /// A colour that follows light/dark mode (including the app's own Appearance setting).
+    init(light: UInt32, dark: UInt32) {
+        #if canImport(UIKit)
+        self.init(uiColor: UIColor { traits in
+            let c = components(traits.userInterfaceStyle == .dark ? dark : light)
+            return UIColor(red: c.red, green: c.green, blue: c.blue, alpha: 1)
+        })
+        #else
+        self.init(hex: dark)
+        #endif
+    }
+}
+
+extension View {
+    /// Heavy, wide, spaced capitals, like the site's menu items and READ MORE… button.
+    func earmilkLabel(_ style: Font.TextStyle = .caption) -> some View {
+        font(.system(style).weight(.heavy).width(.expanded))
+            .tracking(1.2)
+            .textCase(.uppercase)
+    }
+
+    /// Light spaced capitals, like the site's "OCTOBER 30, 2026 · NATE" line.
+    func earmilkMeta(_ style: Font.TextStyle = .caption) -> some View {
+        font(.system(style).width(.expanded))
+            .tracking(1)
+            .textCase(.uppercase)
+    }
+
+    /// The darker header bar with the app's tint.
+    func earmilkNavigationBar() -> some View {
+        #if os(iOS)
+        return self
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Theme.header, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        #else
+        return self
+        #endif
+    }
+}
+
+/// The heavy rounded "EARMILK" title in the header.
+struct Wordmark: View {
+    var body: some View {
+        Text("EARMILK")
+            .font(.system(.title2, design: .rounded, weight: .black))
+            .tracking(-0.5)
+            .foregroundStyle(Theme.text)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .accessibilityLabel("Earmilk")
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// Square buttons with heavy spaced capitals, like the site's READ MORE… button.
+/// At least 48pt tall so they are easy to hit.
+struct EarmilkButtonStyle: ButtonStyle {
+    var prominent = false
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .earmilkLabel(.subheadline)
+            .multilineTextAlignment(.center)
+            .foregroundStyle(prominent ? Theme.background : Color.white)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .background(prominent ? Theme.text : Color.black)
+            .overlay(Rectangle().strokeBorder(Theme.divider, lineWidth: prominent ? 0 : 1))
+            .opacity(configuration.isPressed ? 0.75 : (isEnabled ? 1 : 0.6))
+            .contentShape(Rectangle())
+    }
+}
+
+extension OpenURLAction {
+    /// Tries the app link first and falls back to the website if the app isn't installed.
+    func open(app: URL?, web: URL?) {
+        guard let web else {
+            if let app { callAsFunction(app) }
+            return
+        }
+        guard let app else {
+            callAsFunction(web)
+            return
+        }
+        callAsFunction(app) { accepted in
+            if !accepted { callAsFunction(web) }
+        }
+    }
+}
