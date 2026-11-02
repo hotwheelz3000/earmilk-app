@@ -89,7 +89,7 @@ struct ContentView: View {
                 }
                 if let updated = store.updated, !visiblePosts.isEmpty {
                     Text("Updated \(updated)")
-                        .earmilkMeta(.caption2)
+                        .font(.footnote)
                         .foregroundStyle(Theme.secondaryText)
                         .frame(maxWidth: .infinity)
                         .listRowSeparator(.hidden)
@@ -124,7 +124,8 @@ struct ContentView: View {
             }
         }
         .environment(favorites)
-        .tint(Theme.accent)
+        // Toolbar buttons (filter, ⋯, back, star) match the EARMILK header text colour.
+        .tint(Theme.text)
         .preferredColorScheme(appearance.colorScheme)
     }
 
@@ -198,6 +199,7 @@ struct ContentView: View {
                 } actions: {
                     Button("Try Again") { Task { await store.load() } }
                         .buttonStyle(.borderedProminent)
+                        .tint(Theme.accent)
                 }
             }
         } else if visiblePosts.isEmpty {
@@ -243,7 +245,7 @@ struct PostRow: View {
                         GenrePill(genre: post.genre)
                     }
                     Text(post.date)
-                        .earmilkMeta(.caption2)
+                        .font(.caption)
                         .foregroundStyle(Theme.secondaryText)
                     if isSaved {
                         Image(systemName: "star.fill")

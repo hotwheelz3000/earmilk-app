@@ -33,7 +33,7 @@ struct GenrePill: View {
     var body: some View {
         let color = GenreStyle.color(for: genre)
         Text(genre)
-            .earmilkLabel(.caption2)
+            .font(.caption.weight(.medium))
             .lineLimit(1)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)

@@ -18,11 +18,11 @@ struct PostDetailView: View {
 
                 VStack(spacing: 8) {
                     Text(post.song)
-                        .font(.title)
+                        .font(.title.bold())
                         .foregroundStyle(Theme.text)
                         .accessibilityAddTraits(.isHeader)
                     Text(post.artist)
-                        .font(.title3.weight(.semibold))
+                        .font(.title3)
                         .foregroundStyle(Theme.secondaryText)
                     ViewThatFits {
                         HStack(spacing: 8) { genreAndDate }
@@ -41,9 +41,9 @@ struct PostDetailView: View {
                             openURL.open(app: post.spotifyAppURL, web: post.spotifyURL)
                         } label: {
                             Label("Open in Spotify", systemImage: "play.circle.fill")
-                                .earmilkLabel(.subheadline)
+                                .font(.headline)
                                 .foregroundStyle(.black)
-                                .frame(maxWidth: .infinity, minHeight: 36)
+                                .padding(.horizontal, 8)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(Theme.spotify)
@@ -59,14 +59,16 @@ struct PostDetailView: View {
                     if let article = post.url {
                         Link(destination: article) {
                             Label("Read on Earmilk", systemImage: "doc.text")
-                                .earmilkLabel(.footnote)
-                                .frame(maxWidth: .infinity, minHeight: 36)
+                                .padding(.horizontal, 4)
                         }
                         .buttonStyle(.bordered)
                         .buttonBorderShape(.capsule)
+                        .tint(Theme.accent)
                         .accessibilityHint("Opens the article in your browser")
                     }
                 }
+                // Buttons sized to their labels, not stretched; .large keeps them 44pt+ tall.
+                .controlSize(.large)
                 .frame(maxWidth: 500)
             }
             .padding()
@@ -83,7 +85,6 @@ struct PostDetailView: View {
                 } label: {
                     Label(saved ? "Unsave" : "Save", systemImage: saved ? "star.fill" : "star")
                 }
-                .tint(Theme.star)
                 .accessibilityLabel(saved ? "Saved. Remove from saved songs" : "Save song")
             }
         }
@@ -97,7 +98,7 @@ struct PostDetailView: View {
             GenrePill(genre: post.genre)
         }
         Text(post.date)
-            .earmilkMeta(.caption)
+            .font(.subheadline)
             .foregroundStyle(Theme.secondaryText)
     }
 
@@ -111,8 +112,7 @@ struct PostDetailView: View {
             }
         } label: {
             Label("Apple Music", systemImage: "music.note")
-                .earmilkLabel(.footnote)
-                .frame(maxWidth: .infinity, minHeight: 36)
+                .padding(.horizontal, 4)
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
@@ -124,8 +124,7 @@ struct PostDetailView: View {
             openURL.open(app: post.youTubeAppURL, web: post.youTubeURL)
         } label: {
             Label("YouTube", systemImage: "play.rectangle.fill")
-                .earmilkLabel(.footnote)
-                .frame(maxWidth: .infinity, minHeight: 36)
+                .padding(.horizontal, 4)
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
@@ -162,11 +161,11 @@ struct PostDetailView: View {
                     Label("Play 30-sec Preview", systemImage: "play.fill")
                 }
             }
-            .earmilkLabel(.footnote)
-            .frame(maxWidth: .infinity, minHeight: 36)
+            .padding(.horizontal, 4)
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
+        .tint(Theme.accent)
         .disabled(preview.state == .unavailable || preview.state == .loading)
     }
 }

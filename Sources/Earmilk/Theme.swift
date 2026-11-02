@@ -3,8 +3,7 @@ import SwiftUI
 import UIKit
 #endif
 
-/// Colours and type styled after earmilk.com: charcoal background, white titles,
-/// grey body text, heavy wide capitals for labels.
+/// Colours styled after earmilk.com: charcoal background, white titles, grey body text.
 /// Text colours meet WCAG AA contrast (4.5:1) on their backgrounds in light and dark mode.
 enum Theme {
     static let background = Color(light: 0xFFFFFF, dark: 0x222222)
@@ -47,22 +46,6 @@ extension Color {
         #else
         self.init(hex: dark)
         #endif
-    }
-}
-
-extension View {
-    /// Heavy, wide, spaced capitals, like the site's menu items and READ MORE… button.
-    func earmilkLabel(_ style: Font.TextStyle = .caption) -> some View {
-        font(.system(style).weight(.heavy).width(.expanded))
-            .tracking(1.2)
-            .textCase(.uppercase)
-    }
-
-    /// Light spaced capitals, like the site's "OCTOBER 30, 2026 · NATE" line.
-    func earmilkMeta(_ style: Font.TextStyle = .caption) -> some View {
-        font(.system(style).width(.expanded))
-            .tracking(1)
-            .textCase(.uppercase)
     }
 }
 
