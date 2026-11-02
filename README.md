@@ -1,54 +1,39 @@
 # Earmilk
 
-A native SwiftUI reader for the [Earmilk feed](https://hotwheelz3000.github.io/earmilk/). It loads `posts.json` from the `hotwheelz3000/earmilk` GitHub Pages site and shows each post's artwork, artist, song and genre. Tap a post for large artwork, an **Open in Spotify** button (opens the Spotify app to a search for the artist and song, since the feed has no Spotify link; falls back to the Spotify website if the app isn't installed) and a link to the Earmilk article. The song page also has a **30-second preview** (Apple's free iTunes preview), **Apple Music** (opens the exact song in the Music app when Apple's catalog has it, otherwise Apple Music's web search) and **YouTube** buttons and a **star** to save the song. Search by artist or song from the search bar, swipe right on a song to save it, and pick **Saved Only** from the **⋯** menu to see saved songs (kept on the phone). Pull to refresh, filter by genre from the pill bar or the filter menu, and pick System/Light/Dark from the **⋯** menu.
+An unofficial native SwiftUI reader for the [Earmilk feed](https://hotwheelz3000.github.io/earmilk/). It loads `posts.json` from the `hotwheelz3000/earmilk` GitHub Pages site and lists each post's artwork, song, artist, genre and date.
 
-Colours and type follow earmilk.com (charcoal background in dark mode, white titles, grey secondary text, system fonts; `Theme.swift`). Genre colours keep their families with lighter shades in dark mode and deeper ones in light mode so they stay readable. Accessibility: Dynamic Type everywhere, VoiceOver reads each song as one item with Save and Open in Spotify actions, WCAG AA text contrast in light and dark mode, 44pt+ tap targets, and Reduce Motion respected.
+## Features
 
-The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`. The app icon is `Resources/AppIcon.png` (1024×1024 PNG, no transparency), set by `iconPath:` in `xtool.yml`; replace the file to use your own.
+- **Song list** with pull to refresh, a genre bar and filter menu, and search by artist or song.
+- **Saved songs:** swipe right on a song, long-press it, or tap the star on its page. **⋯ → Saved Only** shows them. Saved songs are kept on the phone.
+- **Song page:**
+  - **Play 30-sec Preview**: Apple's free preview, found with the iTunes Search API. Plays with the silent switch on and stops when you leave the page.
+  - **Open in Spotify**: opens the Spotify app to a search for the song (the feed has no Spotify links), or the website if the app isn't installed.
+  - **Apple Music**: opens the exact song in the Music app when Apple's catalog has it, otherwise Apple Music's web search.
+  - **YouTube**: opens the YouTube app to a search for the song, or the website.
+  - **Read on Earmilk**: the original article.
+- **Appearance:** System, Light or Dark from the **⋯** menu.
 
----
+## Look and accessibility
 
-## iOS app template (xtool)
+Colours follow earmilk.com: a charcoal background in dark mode with white titles and grey secondary text, a solid header with a heavy rounded EARMILK title, and header buttons in the same colour (`Theme.swift`). Genre colours keep their families, with lighter shades in dark mode and deeper ones in light mode so they stay readable (`GenrePill.swift`). iOS 26's Liquid Glass look is turned off (`UIDesignRequiresCompatibility` in `Earmilk-Info.plist`).
 
-A starting point for SwiftUI iOS apps built with [xtool](https://xtool.sh): SwiftPM instead of an Xcode project, and a GitHub Actions workflow that builds an unsigned `.ipa` on every push to `main`.
+Accessibility: Dynamic Type throughout, VoiceOver reads each song as one item with Save and Open in Spotify actions, WCAG AA text contrast in light and dark mode, tap targets of at least 44pt, and Reduce Motion respected.
 
-What's here:
+## Install
 
-- `Package.swift`, `xtool.yml`, `Sources/MyApp/`: a placeholder "Hello, world!" SwiftUI app, so the template builds as-is.
-- `rename-app.sh`: renames the placeholder to your app.
-- `.github/workflows/build-ipa.yml`: builds the `.ipa` on macOS and uploads it.
-- `.claude/skills/using-xtool/`: a Claude Code skill with xtool reference notes.
+Download the IPA from the release page, sign it (e.g. with Signulous or Sideloadly) and install it:
 
-## Start a new app
-
-1. On GitHub, click **Use this template → Create a new repository** (or clone this repo and push it to a new one).
-2. Clone your new repo and rename the app (below).
-3. Commit and push to `main`. The workflow builds your IPA.
-
-## Rename the app
-
-```bash
-./rename-app.sh CoffeeLog com.yourname.CoffeeLog
+```
+https://github.com/hotwheelz3000/earmilk-app/releases/latest
 ```
 
-The first argument is the app name. It becomes a Swift module and type name, so use letters, digits and `_` only (no spaces or hyphens). The second is the bundle ID.
+Every build has the same file name for a given version, so delete the old IPA before downloading a new one.
 
-The script updates the names in `Package.swift`, sets `product:` and `bundleID:` in `xtool.yml`, renames `Sources/MyApp/` and `MyAppApp.swift`, and renames the `MyAppApp` struct. Run it again any time to rename once more.
+## How it's built
 
-## Download the IPA
-
-1. Open the repo's **Actions** tab and pick the latest **Build IPA** run. To build without pushing, choose **Build IPA → Run workflow**.
-2. At the bottom of the run page, under **Artifacts**, download **`<AppName>-ipa`**. It's a zip containing `<AppName>.ipa`.
-
-The workflow reads the app name from `product:` in `xtool.yml`, so the file is named after your app. GitHub keeps artifacts for 90 days by default.
-
-The IPA is **unsigned**, so an iPhone won't install it directly. Sign it when installing, for example with `xtool install` after `xtool auth login`, or with a sideloading tool such as Sideloadly or AltStore.
-
-## Build locally
-
-With xtool installed ([macOS](https://xtool.sh/documentation/xtooldocs/installation-macos), [Linux/Windows](https://xtool.sh/documentation/xtooldocs/installation-linux)):
-
-```bash
-xtool dev build --ipa   # unsigned IPA at xtool/<AppName>.ipa
-xtool dev               # build, sign and run on a connected device
-```
+- Built with [xtool](https://xtool.sh) (SwiftPM, no Xcode project). `xtool.yml` sets the bundle ID, app icon (`Resources/AppIcon.png`, 1024×1024, no transparency) and `Earmilk-Info.plist`.
+- Every push to `main` runs `.github/workflows/build-ipa.yml` on a macOS runner. It builds an unsigned IPA and publishes it as the `latest` GitHub release, titled with the version. Compiler errors show on the run's summary page.
+- The version is `CFBundleShortVersionString` in `Earmilk-Info.plist`; it names the release ("Earmilk 1.0") and the file (`Earmilk-1.0.ipa`). Release notes come from `RELEASE_NOTES.md`.
+- The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`.
+- `.claude/skills/using-xtool/` has xtool reference notes for Claude Code.

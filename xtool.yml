@@ -1,9 +1,8 @@
 version: 1
 bundleID: com.hotwheelz3000.Earmilk
 # The SwiftPM product used as the app. Also names the built .app/.ipa.
-# Change it with ./rename-app.sh rather than by hand.
 product: Earmilk
-# Extra Info.plist keys, merged into the app's Info.plist.
+# Extra Info.plist keys (version, no Liquid Glass), merged into the app's Info.plist.
 infoPath: Earmilk-Info.plist
 # App icon: a 1024x1024 PNG with no transparency. Replace the file to change it.
 iconPath: Resources/AppIcon.png

@@ -6,7 +6,6 @@ let package = Package(
     name: "Earmilk",
     platforms: [
         .iOS(.v17),
-        .macOS(.v14),
     ],
     products: [
         // An xtool project should contain exactly one library product,

@@ -7,7 +7,6 @@ import UIKit
 /// Text colours meet WCAG AA contrast (4.5:1) on their backgrounds in light and dark mode.
 enum Theme {
     static let background = Color(light: 0xFFFFFF, dark: 0x222222)
-    static let header = Color(light: 0xF4F4F4, dark: 0x1B1B1B)
     static let divider = Color(light: 0xC8C8C8, dark: 0x4A4A4A)
     /// Main text: #111 on white (18:1), white on #222 (15.9:1).
     static let text = Color(light: 0x111111, dark: 0xFFFFFF)
