@@ -49,6 +49,19 @@ extension Color {
     }
 }
 
+extension View {
+    /// A solid header in the page's background colour (no see-through blur when scrolling).
+    func solidHeader() -> some View {
+        #if os(iOS)
+        return self
+            .toolbarBackground(Theme.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        #else
+        return self
+        #endif
+    }
+}
+
 extension OpenURLAction {
     /// Tries the app link first and falls back to the website if the app isn't installed.
     func open(app: URL?, web: URL?) {

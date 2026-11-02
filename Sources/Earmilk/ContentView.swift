@@ -104,6 +104,7 @@ struct ContentView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
+            .solidHeader()
             .navigationDestination(for: Post.self) { post in
                 PostDetailView(post: post)
             }

@@ -80,6 +80,7 @@ struct PostDetailView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .solidHeader()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
