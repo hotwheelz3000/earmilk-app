@@ -32,7 +32,14 @@ struct PostDetailView: View {
                 VStack(spacing: 12) {
                     if let spotify = post.spotifyURL {
                         Button {
-                            openURL(spotify)
+                            if let app = post.spotifyAppURL {
+                                // Try the Spotify app first; fall back to the web if it isn't installed.
+                                openURL(app) { accepted in
+                                    if !accepted { openURL(spotify) }
+                                }
+                            } else {
+                                openURL(spotify)
+                            }
                         } label: {
                             Label("Open in Spotify", systemImage: "play.circle.fill")
                                 .font(.headline)

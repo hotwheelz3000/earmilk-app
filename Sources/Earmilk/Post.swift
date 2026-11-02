@@ -21,13 +21,24 @@ struct Post: Decodable, Hashable, Identifiable, Sendable {
     // A few articles cover several songs, so the URL alone isn't unique.
     var id: String { (url?.absoluteString ?? "") + "|" + artist + "|" + song }
 
-    /// Spotify has no link in the feed, so search for the track, as the website does.
-    var spotifyURL: URL? {
+    /// "Artist Song", percent-encoded, for Spotify searches.
+    private var spotifyQuery: String? {
         let query = [artist, song].filter { !$0.isEmpty }.joined(separator: " ")
-        guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-            return nil
-        }
-        return URL(string: "https://open.spotify.com/search/" + encoded)
+        guard !query.isEmpty else { return nil }
+        // Keep only letters/digits and a few safe marks; encode everything else (incl. ":" "/" "?" "&").
+        var allowed = CharacterSet.alphanumerics
+        allowed.insert(charactersIn: "-._~")
+        return query.addingPercentEncoding(withAllowedCharacters: allowed)
+    }
+
+    /// Opens the Spotify app straight to search results for the track.
+    var spotifyAppURL: URL? {
+        spotifyQuery.flatMap { URL(string: "spotify:search:" + $0) }
+    }
+
+    /// Web fallback when the Spotify app isn't installed.
+    var spotifyURL: URL? {
+        spotifyQuery.flatMap { URL(string: "https://open.spotify.com/search/" + $0) }
     }
 
     /// Apple artwork URLs end in a size like "400x400bb.jpg"; ask for a bigger one.
