@@ -2,12 +2,32 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var store = FeedStore()
+    @State private var favorites = Favorites()
     @State private var selectedGenre: String?
+    @State private var savedOnly = false
+    @State private var searchText = ""
     @AppStorage("appearance") private var appearance = Appearance.system
 
+    private var trimmedSearch: String {
+        searchText.trimmingCharacters(in: .whitespaces)
+    }
+
     private var visiblePosts: [Post] {
-        guard let selectedGenre else { return store.posts }
-        return store.posts.filter { $0.genre == selectedGenre }
+        var posts = store.posts
+        if savedOnly {
+            posts = posts.filter { favorites.contains($0) }
+        }
+        if let selectedGenre {
+            posts = posts.filter { $0.genre == selectedGenre }
+        }
+        let query = trimmedSearch
+        if !query.isEmpty {
+            posts = posts.filter {
+                $0.artist.localizedCaseInsensitiveContains(query)
+                    || $0.song.localizedCaseInsensitiveContains(query)
+            }
+        }
+        return posts
     }
 
     var body: some View {
@@ -19,8 +39,17 @@ struct ContentView: View {
                         .listRowSeparator(.hidden)
                 }
                 ForEach(visiblePosts) { post in
+                    let saved = favorites.contains(post)
                     NavigationLink(value: post) {
-                        PostRow(post: post)
+                        PostRow(post: post, isSaved: saved)
+                    }
+                    .swipeActions(edge: .leading) {
+                        Button {
+                            favorites.toggle(post)
+                        } label: {
+                            Label(saved ? "Unsave" : "Save", systemImage: saved ? "star.slash" : "star")
+                        }
+                        .tint(.yellow)
                     }
                 }
                 if let updated = store.updated, !visiblePosts.isEmpty {
@@ -32,7 +61,8 @@ struct ContentView: View {
                 }
             }
             .listStyle(.plain)
-            .navigationTitle(selectedGenre ?? "Earmilk")
+            .searchable(text: $searchText, prompt: "Artist or song")
+            .navigationTitle(selectedGenre ?? (savedOnly ? "Saved" : "Earmilk"))
             .navigationDestination(for: Post.self) { post in
                 PostDetailView(post: post)
             }
@@ -43,9 +73,15 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) { filterMenu }
+                ToolbarItem(placement: .secondaryAction) {
+                    Toggle(isOn: $savedOnly) {
+                        Label("Saved Only", systemImage: "star")
+                    }
+                }
                 ToolbarItem(placement: .secondaryAction) { appearanceMenu }
             }
         }
+        .environment(favorites)
         .tint(.green)
         .preferredColorScheme(appearance.colorScheme)
     }
@@ -113,14 +149,25 @@ struct ContentView: View {
                         .buttonStyle(.borderedProminent)
                 }
             }
-        } else if visiblePosts.isEmpty, let selectedGenre {
-            ContentUnavailableView("No \(selectedGenre) posts", systemImage: "music.note.list")
+        } else if visiblePosts.isEmpty {
+            if !trimmedSearch.isEmpty {
+                ContentUnavailableView.search(text: trimmedSearch)
+            } else if savedOnly {
+                ContentUnavailableView(
+                    "No saved songs",
+                    systemImage: "star",
+                    description: Text("Swipe right on a song, or tap the star on its page, to save it.")
+                )
+            } else if let selectedGenre {
+                ContentUnavailableView("No \(selectedGenre) posts", systemImage: "music.note.list")
+            }
         }
     }
 }
 
 struct PostRow: View {
     let post: Post
+    var isSaved = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -141,6 +188,11 @@ struct PostRow: View {
                     Text(post.date)
                         .font(.caption)
                         .foregroundStyle(.tertiary)
+                    if isSaved {
+                        Image(systemName: "star.fill")
+                            .font(.caption)
+                            .foregroundStyle(.yellow)
+                    }
                 }
             }
         }

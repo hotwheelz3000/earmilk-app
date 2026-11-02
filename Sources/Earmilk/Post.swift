@@ -21,8 +21,8 @@ struct Post: Decodable, Hashable, Identifiable, Sendable {
     // A few articles cover several songs, so the URL alone isn't unique.
     var id: String { (url?.absoluteString ?? "") + "|" + artist + "|" + song }
 
-    /// "Artist Song", percent-encoded, for Spotify searches.
-    private var spotifyQuery: String? {
+    /// "Artist Song", percent-encoded, for searches in Spotify, Apple Music and YouTube.
+    private var searchQuery: String? {
         let query = [artist, song].filter { !$0.isEmpty }.joined(separator: " ")
         guard !query.isEmpty else { return nil }
         // Keep only letters/digits and a few safe marks; encode everything else (incl. ":" "/" "?" "&").
@@ -31,15 +31,20 @@ struct Post: Decodable, Hashable, Identifiable, Sendable {
         return query.addingPercentEncoding(withAllowedCharacters: allowed)
     }
 
-    /// Opens the Spotify app straight to search results for the track.
-    var spotifyAppURL: URL? {
-        spotifyQuery.flatMap { URL(string: "spotify:search:" + $0) }
+    private func searchURL(_ base: String) -> URL? {
+        searchQuery.flatMap { URL(string: base + $0) }
     }
 
-    /// Web fallback when the Spotify app isn't installed.
-    var spotifyURL: URL? {
-        spotifyQuery.flatMap { URL(string: "https://open.spotify.com/search/" + $0) }
-    }
+    // Each service has an app link (tried first) and a web link (used if the app isn't installed).
+
+    var spotifyAppURL: URL? { searchURL("spotify:search:") }
+    var spotifyURL: URL? { searchURL("https://open.spotify.com/search/") }
+
+    var appleMusicAppURL: URL? { searchURL("music://music.apple.com/us/search?term=") }
+    var appleMusicURL: URL? { searchURL("https://music.apple.com/us/search?term=") }
+
+    var youTubeAppURL: URL? { searchURL("youtube://www.youtube.com/results?search_query=") }
+    var youTubeURL: URL? { searchURL("https://www.youtube.com/results?search_query=") }
 
     /// Apple artwork URLs end in a size like "400x400bb.jpg"; ask for a bigger one.
     var largeArtwork: URL? {
