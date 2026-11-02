@@ -7,6 +7,7 @@ struct PostDetailView: View {
     @State private var preview = PreviewPlayer()
     @State private var match: ITunesMatch?
     @State private var didLookUp = false
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         let saved = favorites.contains(post)
@@ -43,23 +44,21 @@ struct PostDetailView: View {
                             Label("Open in Spotify", systemImage: "play.circle.fill")
                                 .font(.headline)
                                 .foregroundStyle(.black)
-                                .padding(.horizontal, 8)
+                                .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(Theme.spotify)
                         .buttonBorderShape(.capsule)
                     }
 
-                    // Side by side when they fit; stacked at large text sizes.
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 12) { appleMusicButton; youTubeButton }
-                        VStack(spacing: 12) { appleMusicButton; youTubeButton }
-                    }
+                    appleMusicButton
+                    youTubeButton
 
                     if let article = post.url {
                         Link(destination: article) {
                             Label("Read on Earmilk", systemImage: "doc.text")
-                                .padding(.horizontal, 4)
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
                         .buttonBorderShape(.capsule)
@@ -67,8 +66,11 @@ struct PostDetailView: View {
                         .accessibilityHint("Opens the article in your browser")
                     }
                 }
-                // Buttons sized to their labels, not stretched; .large keeps them 44pt+ tall.
+                // All buttons share one width (the widest label, about the Spotify button's size)
+                // instead of stretching across the screen; .large keeps them 44pt+ tall.
+                // At the largest text sizes they use the full width so labels aren't cut off.
                 .controlSize(.large)
+                .fixedSize(horizontal: !typeSize.isAccessibilitySize, vertical: false)
                 .frame(maxWidth: 500)
             }
             .padding()
@@ -112,7 +114,8 @@ struct PostDetailView: View {
             }
         } label: {
             Label("Apple Music", systemImage: "music.note")
-                .padding(.horizontal, 4)
+                .font(.headline)
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
@@ -124,7 +127,8 @@ struct PostDetailView: View {
             openURL.open(app: post.youTubeAppURL, web: post.youTubeURL)
         } label: {
             Label("YouTube", systemImage: "play.rectangle.fill")
-                .padding(.horizontal, 4)
+                .font(.headline)
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
@@ -161,7 +165,8 @@ struct PostDetailView: View {
                     Label("Play 30-sec Preview", systemImage: "play.fill")
                 }
             }
-            .padding(.horizontal, 4)
+            .font(.headline)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
