@@ -82,3 +82,17 @@ extension OpenURLAction {
         }
     }
 }
+
+/// The heavy rounded "EARMILK" title at the top of the list.
+struct Wordmark: View {
+    var body: some View {
+        Text("EARMILK")
+            .font(.system(.title2, design: .rounded, weight: .black))
+            .tracking(-0.5)
+            .foregroundStyle(Theme.text)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .accessibilityLabel("Earmilk")
+            .accessibilityAddTraits(.isHeader)
+    }
+}

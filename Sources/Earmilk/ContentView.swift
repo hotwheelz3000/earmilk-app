@@ -101,6 +101,9 @@ struct ContentView: View {
             .background(Theme.background)
             .searchable(text: $searchText, prompt: "Artist or song")
             .navigationTitle(selectedGenre ?? (savedOnly ? "Saved" : "Earmilk"))
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .navigationDestination(for: Post.self) { post in
                 PostDetailView(post: post)
             }
@@ -110,6 +113,7 @@ struct ContentView: View {
                 if store.posts.isEmpty { await store.load() }
             }
             .toolbar {
+                ToolbarItem(placement: .principal) { Wordmark() }
                 ToolbarItem(placement: .primaryAction) { filterMenu }
                 ToolbarItem(placement: .secondaryAction) {
                     Toggle(isOn: $savedOnly) {
