@@ -4,7 +4,7 @@ import UIKit
 #endif
 
 /// Colours and type styled after earmilk.com: charcoal background, white titles,
-/// grey body text, heavy wide capitals for labels, square buttons.
+/// grey body text, heavy wide capitals for labels.
 /// Text colours meet WCAG AA contrast (4.5:1) on their backgrounds in light and dark mode.
 enum Theme {
     static let background = Color(light: 0xFFFFFF, dark: 0x222222)
@@ -16,6 +16,15 @@ enum Theme {
     static let secondaryText = Color(light: 0x555555, dark: 0xB3B3B3)
     /// Swipe-action background for Save; white text on it is 4.7:1.
     static let saveAction = Color(hex: 0x8A6500)
+    /// App tint (links, toolbar icons, bordered buttons): green that reads on both backgrounds.
+    static let accent = Color(light: 0x15803D, dark: 0x4ADE80)
+    /// Saved-song star.
+    static let star = Color(light: 0x9A6700, dark: 0xFFD60A)
+    /// Button tints for Apple Music and YouTube, readable on both backgrounds.
+    static let appleMusic = Color(light: 0xC81E3A, dark: 0xFF6B7F)
+    static let youTube = Color(light: 0xC4161C, dark: 0xFF6B6B)
+    /// Spotify green; black text on it is 8.6:1.
+    static let spotify = Color(hex: 0x1ED760)
 }
 
 private func components(_ hex: UInt32) -> (red: Double, green: Double, blue: Double) {
@@ -54,53 +63,6 @@ extension View {
         font(.system(style).width(.expanded))
             .tracking(1)
             .textCase(.uppercase)
-    }
-
-    /// The darker header bar with the app's tint.
-    func earmilkNavigationBar() -> some View {
-        #if os(iOS)
-        return self
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Theme.header, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-        #else
-        return self
-        #endif
-    }
-}
-
-/// The heavy rounded "EARMILK" title in the header.
-struct Wordmark: View {
-    var body: some View {
-        Text("EARMILK")
-            .font(.system(.title2, design: .rounded, weight: .black))
-            .tracking(-0.5)
-            .foregroundStyle(Theme.text)
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            .accessibilityLabel("Earmilk")
-            .accessibilityAddTraits(.isHeader)
-    }
-}
-
-/// Square buttons with heavy spaced capitals, like the site's READ MORE… button.
-/// At least 48pt tall so they are easy to hit.
-struct EarmilkButtonStyle: ButtonStyle {
-    var prominent = false
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .earmilkLabel(.subheadline)
-            .multilineTextAlignment(.center)
-            .foregroundStyle(prominent ? Theme.background : Color.white)
-            .frame(maxWidth: .infinity, minHeight: 48)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(prominent ? Theme.text : Color.black)
-            .overlay(Rectangle().strokeBorder(Theme.divider, lineWidth: prominent ? 0 : 1))
-            .opacity(configuration.isPressed ? 0.75 : (isEnabled ? 1 : 0.6))
-            .contentShape(Rectangle())
     }
 }
 

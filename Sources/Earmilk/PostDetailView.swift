@@ -11,10 +11,27 @@ struct PostDetailView: View {
     var body: some View {
         let saved = favorites.contains(post)
         ScrollView {
-            VStack(spacing: 0) {
-                ArtworkHeader(post: post, isSaved: saved, large: true)
-                    .frame(maxWidth: 700)
-                    .accessibilityElement(children: .combine)
+            VStack(spacing: 20) {
+                ArtworkView(url: post.largeArtwork, cornerRadius: 16)
+                    .frame(maxWidth: 500)
+                    .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
+
+                VStack(spacing: 8) {
+                    Text(post.song)
+                        .font(.title)
+                        .foregroundStyle(Theme.text)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(post.artist)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Theme.secondaryText)
+                    ViewThatFits {
+                        HStack(spacing: 8) { genreAndDate }
+                        VStack(spacing: 6) { genreAndDate }
+                    }
+                    .padding(.top, 4)
+                }
+                .multilineTextAlignment(.center)
+                .accessibilityElement(children: .combine)
 
                 VStack(spacing: 12) {
                     previewButton
@@ -24,50 +41,41 @@ struct PostDetailView: View {
                             openURL.open(app: post.spotifyAppURL, web: post.spotifyURL)
                         } label: {
                             Label("Open in Spotify", systemImage: "play.circle.fill")
+                                .earmilkLabel(.subheadline)
+                                .foregroundStyle(.black)
+                                .frame(maxWidth: .infinity, minHeight: 36)
                         }
-                        .buttonStyle(EarmilkButtonStyle(prominent: true))
+                        .buttonStyle(.borderedProminent)
+                        .tint(Theme.spotify)
+                        .buttonBorderShape(.capsule)
                     }
 
-                    if post.appleMusicURL != nil {
-                        Button {
-                            Task {
-                                // The exact song's Apple Music link opens it in the Music app;
-                                // fall back to Apple Music's web search if it isn't found.
-                                let page = await lookUp()?.page
-                                openURL.open(app: page, web: post.appleMusicURL)
-                            }
-                        } label: {
-                            Label("Apple Music", systemImage: "music.note")
-                        }
-                        .buttonStyle(EarmilkButtonStyle())
-                    }
-
-                    if post.youTubeURL != nil {
-                        Button {
-                            openURL.open(app: post.youTubeAppURL, web: post.youTubeURL)
-                        } label: {
-                            Label("YouTube", systemImage: "play.rectangle.fill")
-                        }
-                        .buttonStyle(EarmilkButtonStyle())
+                    // Side by side when they fit; stacked at large text sizes.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 12) { appleMusicButton; youTubeButton }
+                        VStack(spacing: 12) { appleMusicButton; youTubeButton }
                     }
 
                     if let article = post.url {
                         Link(destination: article) {
                             Label("Read on Earmilk", systemImage: "doc.text")
+                                .earmilkLabel(.footnote)
+                                .frame(maxWidth: .infinity, minHeight: 36)
                         }
-                        .buttonStyle(EarmilkButtonStyle())
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
                         .accessibilityHint("Opens the article in your browser")
                     }
                 }
-                .padding(16)
-                .padding(.top, 8)
                 .frame(maxWidth: 500)
             }
-            .frame(maxWidth: .infinity)
+            .padding()
         }
         .background(Theme.background)
         .navigationTitle(post.song)
-        .earmilkNavigationBar()
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -75,11 +83,53 @@ struct PostDetailView: View {
                 } label: {
                     Label(saved ? "Unsave" : "Save", systemImage: saved ? "star.fill" : "star")
                 }
+                .tint(Theme.star)
                 .accessibilityLabel(saved ? "Saved. Remove from saved songs" : "Save song")
             }
         }
         .task { _ = await lookUp() }
         .onDisappear { preview.stop() }
+    }
+
+    @ViewBuilder
+    private var genreAndDate: some View {
+        if !post.genre.isEmpty {
+            GenrePill(genre: post.genre)
+        }
+        Text(post.date)
+            .earmilkMeta(.caption)
+            .foregroundStyle(Theme.secondaryText)
+    }
+
+    private var appleMusicButton: some View {
+        Button {
+            Task {
+                // The exact song's Apple Music link opens it in the Music app;
+                // fall back to Apple Music's web search if it isn't found.
+                let page = await lookUp()?.page
+                openURL.open(app: page, web: post.appleMusicURL)
+            }
+        } label: {
+            Label("Apple Music", systemImage: "music.note")
+                .earmilkLabel(.footnote)
+                .frame(maxWidth: .infinity, minHeight: 36)
+        }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .tint(Theme.appleMusic)
+    }
+
+    private var youTubeButton: some View {
+        Button {
+            openURL.open(app: post.youTubeAppURL, web: post.youTubeURL)
+        } label: {
+            Label("YouTube", systemImage: "play.rectangle.fill")
+                .earmilkLabel(.footnote)
+                .frame(maxWidth: .infinity, minHeight: 36)
+        }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .tint(Theme.youTube)
     }
 
     /// Finds the song on Apple's catalog once; used by the preview and Apple Music buttons.
@@ -99,7 +149,7 @@ struct PostDetailView: View {
                 switch preview.state {
                 case .loading:
                     HStack(spacing: 8) {
-                        ProgressView().tint(.white)
+                        ProgressView()
                         Text("Finding preview…")
                     }
                 case .playing:
@@ -112,8 +162,11 @@ struct PostDetailView: View {
                     Label("Play 30-sec Preview", systemImage: "play.fill")
                 }
             }
+            .earmilkLabel(.footnote)
+            .frame(maxWidth: .infinity, minHeight: 36)
         }
-        .buttonStyle(EarmilkButtonStyle())
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
         .disabled(preview.state == .unavailable || preview.state == .loading)
     }
 }
