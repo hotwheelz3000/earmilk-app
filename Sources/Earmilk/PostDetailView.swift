@@ -58,11 +58,15 @@ struct PostDetailView: View {
                         Link(destination: article) {
                             Label("Read on Earmilk", systemImage: "doc.text")
                                 .font(.headline)
+                                .foregroundStyle(Theme.text)
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.bordered)
+                        // Header colours: page background with header-coloured lettering,
+                        // plus a thin outline so the button's shape still shows.
+                        .buttonStyle(.borderedProminent)
                         .buttonBorderShape(.capsule)
-                        .tint(Theme.accent)
+                        .tint(Theme.background)
+                        .overlay(Capsule().strokeBorder(Theme.divider, lineWidth: 1))
                         .accessibilityHint("Opens the article in your browser")
                     }
                 }
