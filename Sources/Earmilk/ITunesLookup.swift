@@ -30,8 +30,29 @@ enum ITunesLookup {
         return t.trimmingCharacters(in: .whitespaces)
     }
 
-    /// The best match, or nil. The title must match so a wrong song is never used;
-    /// a matching artist wins ties.
+    /// Lowercased letters and digits only.
+    private static func norm(_ s: String) -> String {
+        String(s.lowercased().unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) })
+    }
+
+    /// True if any of the post's artist names (split on , & x feat. with) matches iTunes' artist.
+    static func artistMatches(_ postArtist: String, _ itunesArtist: String) -> Bool {
+        let ia = norm(itunesArtist)
+        guard ia.count >= 2 else { return false }
+        let names = postArtist.replacingOccurrences(
+            of: #"\s*(,|&|\+|\band\b|\bx\b|\bfeat\.?|\bft\.?|\bwith\b)\s*"#,
+            with: "|",
+            options: [.regularExpression, .caseInsensitive]
+        ).split(separator: "|")
+        return names.contains { name in
+            let n = norm(String(name))
+            return n.count >= 2 && (ia.contains(n) || n.contains(ia))
+        }
+    }
+
+    /// The best match, or nil. The artist AND the title must match, so a different
+    /// song with a similar title (e.g. "The Way You Love Me" for "The Way You Love")
+    /// or another song by the same artist is never used. An exact title wins ties.
     static func match(for post: Post) async -> ITunesMatch? {
         var components = URLComponents(string: "https://itunes.apple.com/search")!
         components.queryItems = [
@@ -47,19 +68,15 @@ enum ITunesLookup {
         else { return nil }
 
         let song = core(post.song)
-        let artist = post.artist.lowercased()
         guard !song.isEmpty else { return nil }
 
         var best: (score: Int, track: Track)?
         for track in response.results {
-            guard let name = track.trackName else { continue }
+            guard let name = track.trackName,
+                  artistMatches(post.artist, track.artistName ?? "") else { continue }
             let trackCore = core(name)
             guard !trackCore.isEmpty, trackCore.contains(song) || song.contains(trackCore) else { continue }
-            let trackArtist = (track.artistName ?? "").lowercased()
             var score = 1
-            if !trackArtist.isEmpty, artist.contains(trackArtist) || trackArtist.contains(artist) {
-                score += 4
-            }
             if trackCore == song { score += 2 }
             if track.previewUrl != nil { score += 1 }
             if best == nil || score > best!.score {
