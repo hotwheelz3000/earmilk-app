@@ -1,8 +1,8 @@
 import Foundation
 
 /// What the app can learn from a post's Earmilk article page:
-/// - the Spotify track or album the article embeds (checked against the song title),
-/// - a SoundCloud player it embeds,
+/// - the Spotify track or album the article embeds (checked against the song title)
+///   and its 30-second preview,
 /// - the best picture: the Spotify cover, else the article's own featured image.
 /// The feed can't always include these (earmilk.com blocks GitHub's servers), but the phone can load them.
 struct ArticleInfo: Sendable {
@@ -10,14 +10,9 @@ struct ArticleInfo: Sendable {
 
     var spotifyKind: SpotifyKind?
     var spotifyID: String?
-    var soundCloudPlayer: URL?
+    /// Spotify's 30-second preview MP3, played by the app's own preview button.
+    var spotifyPreview: URL?
     var image: URL?
-
-    /// Spotify's embeddable player (plays a 30-second preview, or the full song when signed in).
-    var spotifyEmbed: URL? {
-        guard let spotifyKind, let spotifyID else { return nil }
-        return URL(string: "https://open.spotify.com/embed/\(spotifyKind.rawValue)/\(spotifyID)?utm_source=generator")
-    }
 
     /// Opens this exact song in the Spotify app.
     var spotifyAppURL: URL? {
@@ -29,8 +24,6 @@ struct ArticleInfo: Sendable {
         guard let spotifyKind, let spotifyID else { return nil }
         return URL(string: "https://open.spotify.com/\(spotifyKind.rawValue)/\(spotifyID)")
     }
-
-    var hasPlayer: Bool { spotifyEmbed != nil || soundCloudPlayer != nil }
 }
 
 /// Loads and remembers each article's ArticleInfo while the app is open.
@@ -106,12 +99,17 @@ actor ArticleCache {
             info.spotifyKind = ArticleInfo.SpotifyKind(rawValue: kind)
             info.spotifyID = id
             info.image = oembed.thumbnail_url.flatMap(URL.init(string:))
+            // Spotify's embed page lists the preview MP3 (p.scdn.co/mp3-preview/…).
+            if let embedURL = URL(string: "https://open.spotify.com/embed/\(kind)/\(id)"),
+               let embed = await get(embedURL) {
+                let page = String(decoding: embed, as: UTF8.self)
+                    .replacingOccurrences(of: "\\/", with: "/")
+                    .replacingOccurrences(of: "\\u0026", with: "&")
+                if let m = matches(#"(https://p\.scdn\.co/mp3-preview/[A-Za-z0-9]+(?:\?[A-Za-z0-9=&_.%-]*)?)"#, in: page).first {
+                    info.spotifyPreview = URL(string: m[1])
+                }
+            }
             break
-        }
-
-        // SoundCloud's embedded player, if the article has one.
-        if let m = matches(#"(https?://w\.soundcloud\.com/player/\?[^"'\s<>]+)"#, in: html).first {
-            info.soundCloudPlayer = URL(string: m[1])
         }
 
         // Picture fallback: the article's own featured image.

@@ -1,4 +1,3 @@
-import AVFoundation
 import SwiftUI
 
 struct PostDetailView: View {
@@ -36,25 +35,8 @@ struct PostDetailView: View {
                 .multilineTextAlignment(.center)
                 .accessibilityElement(children: .combine)
 
-                if let player = embeddedPlayer {
-                    // Apple and Deezer have no preview: play the article's embedded player instead.
-                    EmbeddedPlayer(url: player.url)
-                        .frame(height: player.height)
-                        .frame(maxWidth: 500)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .accessibilityLabel(player.label)
-                        .onAppear {
-                            #if os(iOS)
-                            // Heard even with the silent switch on, like the 30-sec preview.
-                            try? AVAudioSession.sharedInstance().setCategory(.playback)
-                            #endif
-                        }
-                }
-
                 VStack(spacing: 12) {
-                    if embeddedPlayer == nil {
-                        previewButton
-                    }
+                    previewButton
 
                     if post.spotifyURL != nil {
                         Button {
@@ -164,19 +146,17 @@ struct PostDetailView: View {
         .tint(Theme.youTube)
     }
 
-    /// The article's Spotify/SoundCloud player, shown once Apple and Deezer turn out to
-    /// have no preview.
-    private var embeddedPlayer: (url: URL, height: CGFloat, label: String)? {
-        guard didLookUp, match?.preview == nil, let info = articleInfo else { return nil }
-        if let spotify = info.spotifyEmbed { return (spotify, 152, "Spotify player") }
-        if let soundCloud = info.soundCloudPlayer { return (soundCloud, 166, "SoundCloud player") }
-        return nil
-    }
-
     /// Finds the song on Apple's catalog once; used by the preview and Apple Music buttons.
     private func lookUp() async -> ITunesMatch? {
         if !didLookUp {
-            match = await ITunesLookup.match(for: post)
+            var found = await ITunesLookup.match(for: post)
+            // Neither Apple nor Deezer has a preview: use Spotify's, from the
+            // Spotify player embedded in the Earmilk article.
+            if found?.preview == nil,
+               let spotify = await ArticleCache.shared.info(for: post)?.spotifyPreview {
+                found = ITunesMatch(preview: spotify, page: found?.page)
+            }
+            match = found
             didLookUp = true
         }
         return match
