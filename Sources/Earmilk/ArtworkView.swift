@@ -10,6 +10,21 @@ struct ArtworkView: View {
     @State private var articleImage: URL?
 
     var body: some View {
+        // A square box that the image fills and is cropped to, so wide or tall
+        // images (e.g. Earmilk article photos) never spill outside it.
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .overlay { image }
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .contentShape(Rectangle())
+            .accessibilityHidden(true)
+            .task(id: url) {
+                guard url == nil, let article else { return }
+                articleImage = await ArticleImageCache.shared.image(for: article)
+            }
+    }
+
+    private var image: some View {
         AsyncImage(
             url: url ?? articleImage,
             transaction: Transaction(animation: reduceMotion ? nil : .easeOut(duration: 0.2))
@@ -25,13 +40,6 @@ struct ArtworkView: View {
                         .foregroundStyle(Theme.secondaryText)
                 }
             }
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-        .accessibilityHidden(true)
-        .task(id: url) {
-            guard url == nil, let article else { return }
-            articleImage = await ArticleImageCache.shared.image(for: article)
         }
     }
 }
