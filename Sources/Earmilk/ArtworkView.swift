@@ -4,8 +4,9 @@ import SwiftUI
 struct ArtworkView: View {
     let url: URL?
     var cornerRadius: CGFloat = 8
-    /// The Earmilk article; its own image is shown when there's no cover art.
-    var article: URL? = nil
+    /// When there's no cover art, the picture from this post's Earmilk article
+    /// (the embedded Spotify cover, else the article's featured image).
+    var post: Post? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var articleImage: URL?
 
@@ -19,8 +20,8 @@ struct ArtworkView: View {
             .contentShape(Rectangle())
             .accessibilityHidden(true)
             .task(id: url) {
-                guard url == nil, let article else { return }
-                articleImage = await ArticleImageCache.shared.image(for: article)
+                guard url == nil, let post else { return }
+                articleImage = await ArticleCache.shared.info(for: post)?.image
             }
     }
 

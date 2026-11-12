@@ -240,7 +240,7 @@ struct PostRow: View {
     var body: some View {
         let big = typeSize.isAccessibilitySize
         HStack(alignment: big ? .top : .center, spacing: 12) {
-            ArtworkView(url: post.artwork, article: post.url)
+            ArtworkView(url: post.artwork, post: post)
                 .frame(width: min(artworkSize, 100), height: min(artworkSize, 100))
             VStack(alignment: .leading, spacing: 4) {
                 Text(post.song)

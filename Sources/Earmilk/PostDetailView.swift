@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 struct PostDetailView: View {
@@ -7,13 +8,14 @@ struct PostDetailView: View {
     @State private var preview = PreviewPlayer()
     @State private var match: ITunesMatch?
     @State private var didLookUp = false
+    @State private var articleInfo: ArticleInfo?
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         let saved = favorites.contains(post)
         ScrollView {
             VStack(spacing: 20) {
-                ArtworkView(url: post.largeArtwork, cornerRadius: 16, article: post.url)
+                ArtworkView(url: post.largeArtwork, cornerRadius: 16, post: post)
                     .frame(maxWidth: 500)
                     .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
 
@@ -34,12 +36,33 @@ struct PostDetailView: View {
                 .multilineTextAlignment(.center)
                 .accessibilityElement(children: .combine)
 
+                if let player = embeddedPlayer {
+                    // Apple and Deezer have no preview: play the article's embedded player instead.
+                    EmbeddedPlayer(url: player.url)
+                        .frame(height: player.height)
+                        .frame(maxWidth: 500)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .accessibilityLabel(player.label)
+                        .onAppear {
+                            #if os(iOS)
+                            // Heard even with the silent switch on, like the 30-sec preview.
+                            try? AVAudioSession.sharedInstance().setCategory(.playback)
+                            #endif
+                        }
+                }
+
                 VStack(spacing: 12) {
-                    previewButton
+                    if embeddedPlayer == nil {
+                        previewButton
+                    }
 
                     if post.spotifyURL != nil {
                         Button {
-                            openURL.open(app: post.spotifyAppURL, web: post.spotifyURL)
+                            // The exact song when the article embeds it, otherwise a Spotify search.
+                            openURL.open(
+                                app: articleInfo?.spotifyAppURL ?? post.spotifyAppURL,
+                                web: articleInfo?.spotifyWebURL ?? post.spotifyURL
+                            )
                         } label: {
                             Label("Open in Spotify", systemImage: "play.circle.fill")
                                 .font(.headline)
@@ -96,6 +119,7 @@ struct PostDetailView: View {
             }
         }
         .task { _ = await lookUp() }
+        .task { articleInfo = await ArticleCache.shared.info(for: post) }
         .onDisappear { preview.stop() }
     }
 
@@ -138,6 +162,15 @@ struct PostDetailView: View {
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
         .tint(Theme.youTube)
+    }
+
+    /// The article's Spotify/SoundCloud player, shown once Apple and Deezer turn out to
+    /// have no preview.
+    private var embeddedPlayer: (url: URL, height: CGFloat, label: String)? {
+        guard didLookUp, match?.preview == nil, let info = articleInfo else { return nil }
+        if let spotify = info.spotifyEmbed { return (spotify, 152, "Spotify player") }
+        if let soundCloud = info.soundCloudPlayer { return (soundCloud, 166, "SoundCloud player") }
+        return nil
     }
 
     /// Finds the song on Apple's catalog once; used by the preview and Apple Music buttons.
