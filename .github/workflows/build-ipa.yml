@@ -29,6 +29,13 @@ jobs:
           echo "App: $name ${version:-(no version)}"
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+          # The build number is GitHub's run counter: CFBundleVersion in the built app,
+          # shown in the app's ⋯ menu, the release title and the IPA name.
+          if [ -n "$plist" ]; then
+            plutil -replace CFBundleVersion -string "$GITHUB_RUN_NUMBER" "$plist"
+          fi
+          echo "Build number: $GITHUB_RUN_NUMBER"
 
       # Per https://xtool.sh/documentation/xtooldocs/installation-macos:
       # use the preinstalled Xcode for the iOS SDK + Swift toolchain, then
@@ -73,8 +80,8 @@ jobs:
           ls -la xtool
 
       # Every build of main is published as the "latest" GitHub Release, which holds
-      # the plain IPA (named with the version, e.g. Earmilk-1.0.ipa). The title
-      # carries the version; the notes come from RELEASE_NOTES.md plus the build time.
+      # the plain IPA (named with version and build, e.g. Earmilk-1.0-42.ipa). The title
+      # carries both; the notes come from RELEASE_NOTES.md plus the build time.
       # A release left as a draft is published at the end, so the link always works.
       - name: Publish as latest release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -82,8 +89,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           APP_NAME: ${{ steps.app.outputs.name }}
           version: ${{ steps.app.outputs.version }}
+          build: ${{ steps.app.outputs.build }}
         run: |
-          file="$APP_NAME${version:+-$version}.ipa"
+          file="$APP_NAME${version:+-$version}-$build.ipa"
           cp "xtool/$APP_NAME.ipa" "xtool/$file"
           label=$(TZ=America/Los_Angeles date '+%b %-d, %Y %-I:%M %p')
           {
@@ -92,7 +100,7 @@ jobs:
           } > release-notes.txt
           gh release delete latest --yes --cleanup-tag || true
           gh release create latest "xtool/$file" \
-            --title "$APP_NAME${version:+ $version}" \
+            --title "$APP_NAME${version:+ $version} (build $build)" \
             --notes-file release-notes.txt \
             --latest
           gh release edit latest --draft=false

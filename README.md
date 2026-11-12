@@ -29,12 +29,12 @@ Download the IPA from the release page, sign it (e.g. with Signulous or Sideload
 https://github.com/hotwheelz3000/earmilk-app/releases/latest
 ```
 
-Every build has the same file name for a given version, so delete the old IPA before downloading a new one.
+Each build's file name includes its build number.
 
 ## How it's built
 
 - Built with [xtool](https://xtool.sh) (SwiftPM, no Xcode project). `xtool.yml` sets the bundle ID, app icon (`Resources/AppIcon.png`, 1024×1024, no transparency) and `Earmilk-Info.plist`.
 - Every push to `main` runs `.github/workflows/build-ipa.yml` on a macOS runner. It builds an unsigned IPA and publishes it as the `latest` GitHub release, titled with the version. Compiler errors show on the run's summary page.
-- The version is `CFBundleShortVersionString` in `Earmilk-Info.plist`; it names the release ("Earmilk 1.0") and the file (`Earmilk-1.0.ipa`). Release notes come from `RELEASE_NOTES.md`.
+- The version is `CFBundleShortVersionString` in `Earmilk-Info.plist`; the build number is GitHub's run counter, set as `CFBundleVersion` at build time. Both name the release ("Earmilk 1.0 (build 42)") and the file (`Earmilk-1.0-42.ipa`), and show at the bottom of the app's ⋯ menu. Release notes come from `RELEASE_NOTES.md`.
 - The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`.
 - `.claude/skills/using-xtool/` has xtool reference notes for Claude Code.

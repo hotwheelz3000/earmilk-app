@@ -122,6 +122,10 @@ struct ContentView: View {
                     }
                 }
                 ToolbarItem(placement: .secondaryAction) { appearanceMenu }
+                ToolbarItem(placement: .secondaryAction) {
+                    // Which build is installed, e.g. "Version 1.0 (42)".
+                    Text(Self.versionLabel)
+                }
             }
         }
         .environment(favorites)
@@ -173,6 +177,13 @@ struct ContentView: View {
                       ? "line.3.horizontal.decrease.circle"
                       : "line.3.horizontal.decrease.circle.fill")
         }
+    }
+
+    private static var versionLabel: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "Version \(version) (\(build))"
     }
 
     private var appearanceMenu: some View {
