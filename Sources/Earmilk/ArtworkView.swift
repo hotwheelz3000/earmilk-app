@@ -4,11 +4,14 @@ import SwiftUI
 struct ArtworkView: View {
     let url: URL?
     var cornerRadius: CGFloat = 8
+    /// The Earmilk article; its own image is shown when there's no cover art.
+    var article: URL? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var articleImage: URL?
 
     var body: some View {
         AsyncImage(
-            url: url,
+            url: url ?? articleImage,
             transaction: Transaction(animation: reduceMotion ? nil : .easeOut(duration: 0.2))
         ) { phase in
             switch phase {
@@ -26,5 +29,9 @@ struct ArtworkView: View {
         .aspectRatio(1, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .accessibilityHidden(true)
+        .task(id: url) {
+            guard url == nil, let article else { return }
+            articleImage = await ArticleImageCache.shared.image(for: article)
+        }
     }
 }

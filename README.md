@@ -12,6 +12,7 @@ An unofficial native SwiftUI reader for the [Earmilk feed](https://hotwheelz3000
   - **Apple Music**: opens the exact song in the Music app when Apple's catalog has it, otherwise Apple Music's web search.
   - **YouTube**: opens the YouTube app to a search for the song, or the website.
   - **Read on Earmilk**: the original article.
+- **Artwork:** the feed's cover; for posts without one, the app shows the Earmilk article's own image.
 - **Appearance:** System, Light or Dark from the **⋯** menu.
 
 ## Look and accessibility

@@ -13,7 +13,7 @@ struct PostDetailView: View {
         let saved = favorites.contains(post)
         ScrollView {
             VStack(spacing: 20) {
-                ArtworkView(url: post.largeArtwork, cornerRadius: 16)
+                ArtworkView(url: post.largeArtwork, cornerRadius: 16, article: post.url)
                     .frame(maxWidth: 500)
                     .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
 
