@@ -7,7 +7,7 @@ An unofficial native SwiftUI reader for the [Earmilk feed](https://hotwheelz3000
 - **Song list** with pull to refresh, a genre bar and filter menu, and search by artist or song.
 - **Saved songs:** swipe right on a song, long-press it, or tap the star on its page. **⋯ → Saved Only** shows them. Saved songs are kept on the phone.
 - **Song page:**
-  - **Play 30-sec Preview**: Apple's free preview, found with the iTunes Search API. Plays with the silent switch on and stops when you leave the page.
+  - **Play 30-sec Preview**: Apple's free preview (iTunes Search API), or Deezer's when Apple doesn't have the song. The artist and title must both match. Plays with the silent switch on and stops when you leave the page.
   - **Open in Spotify**: opens the Spotify app to a search for the song (the feed has no Spotify links), or the website if the app isn't installed.
   - **Apple Music**: opens the exact song in the Music app when Apple's catalog has it, otherwise Apple Music's web search.
   - **YouTube**: opens the YouTube app to a search for the song, or the website.
