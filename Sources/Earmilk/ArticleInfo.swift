@@ -48,12 +48,15 @@ actor ArticleCache {
 
     // MARK: - Loading
 
-    private static func get(_ url: URL) async -> Data? {
+    private static let phoneAgent =
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
+    /// Spotify pre-renders its embed page (with the preview link) for desktop browsers.
+    private static let desktopAgent =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+
+    private static func get(_ url: URL, desktop: Bool = false) async -> Data? {
         var request = URLRequest(url: url, timeoutInterval: 15)
-        request.setValue(
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-            forHTTPHeaderField: "User-Agent"
-        )
+        request.setValue(desktop ? desktopAgent : phoneAgent, forHTTPHeaderField: "User-Agent")
         guard let result = try? await URLSession.shared.data(for: request),
               (result.1 as? HTTPURLResponse)?.statusCode ?? 200 < 400
         else { return nil }
@@ -83,8 +86,15 @@ actor ArticleCache {
         // Spotify: the page may also link other tracks or playlists (e.g. in a sidebar),
         // so only accept one whose title matches this post's song.
         var seen = Set<String>()
-        let songCore = ITunesLookup.core(song)
-        for m in matches(#"open\.spotify\.com/(?:embed/)?(track|album)/([A-Za-z0-9]{22})"#, in: html) {
+        // Letters and digits only, so "They Dont Rock" matches "They Don't Rock".
+        func simple(_ s: String) -> String {
+            String(ITunesLookup.core(s).unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) })
+        }
+        let songCore = simple(song)
+        // open.spotify.com/track/ID, /embed/track/ID, or spotify:track:ID (also URL-encoded).
+        let links = matches(#"open\.spotify\.com/(?:embed(?:-legacy)?/)?(track|album)/([A-Za-z0-9]{22})"#, in: html)
+            + matches(#"spotify(?::|%3A)(track|album)(?::|%3A)([A-Za-z0-9]{22})"#, in: html)
+        for m in links {
             let kind = m[1].lowercased(), id = m[2]
             guard seen.insert(id).inserted, seen.count <= 6,
                   let oembedURL = URL(string: "https://open.spotify.com/oembed?url=https://open.spotify.com/\(kind)/\(id)"),
@@ -92,7 +102,7 @@ actor ArticleCache {
                   let oembed = try? JSONDecoder().decode(SpotifyOEmbed.self, from: json),
                   let title = oembed.title
             else { continue }
-            let titleCore = ITunesLookup.core(title)
+            let titleCore = simple(title)
             guard !titleCore.isEmpty, !songCore.isEmpty,
                   titleCore.contains(songCore) || songCore.contains(titleCore)
             else { continue }
@@ -100,13 +110,18 @@ actor ArticleCache {
             info.spotifyID = id
             info.image = oembed.thumbnail_url.flatMap(URL.init(string:))
             // Spotify's embed page lists the preview MP3 (p.scdn.co/mp3-preview/…).
-            if let embedURL = URL(string: "https://open.spotify.com/embed/\(kind)/\(id)"),
-               let embed = await get(embedURL) {
+            for desktop in [true, false] {
+                guard info.spotifyPreview == nil,
+                      let embedURL = URL(string: "https://open.spotify.com/embed/\(kind)/\(id)"),
+                      let embed = await get(embedURL, desktop: desktop)
+                else { continue }
                 let page = String(decoding: embed, as: UTF8.self)
                     .replacingOccurrences(of: "\\/", with: "/")
+                    .replacingOccurrences(of: "\\u002F", with: "/")
                     .replacingOccurrences(of: "\\u0026", with: "&")
-                if let m = matches(#"(https://p\.scdn\.co/mp3-preview/[A-Za-z0-9]+(?:\?[A-Za-z0-9=&_.%-]*)?)"#, in: page).first {
-                    info.spotifyPreview = URL(string: m[1])
+                    .replacingOccurrences(of: "&amp;", with: "&")
+                if let m = matches(#"p\.scdn\.co/mp3-preview/([A-Za-z0-9]+(?:\?[A-Za-z0-9=_.%-]+(?:&[A-Za-z0-9=_.%-]+)*)?)"#, in: page).first {
+                    info.spotifyPreview = URL(string: "https://p.scdn.co/mp3-preview/\(m[1])")
                 }
             }
             break
