@@ -39,9 +39,8 @@ Each build's file name includes its build number.
 - The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`.
 - `.claude/skills/using-xtool/` has xtool reference notes for Claude Code.
 
-## Logs and updates
+## Updates
 
-- **Share logs:** shake the phone anywhere in the app to share `app.log`, which includes crashes. Send it along with bug reports.
 - **Update feed:** each release also has `source.json`, an AltStore-format source. Add this URL in a sideloading app that supports sources to see new builds as updates:
 
 ```
