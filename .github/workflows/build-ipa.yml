@@ -145,6 +145,8 @@ jobs:
           fi
           notes=""
           [ -f RELEASE_NOTES.md ] && notes=$(cat RELEASE_NOTES.md)
+          # The publish step makes this copy too; make it here first for the size.
+          [ -f "xtool/$FILE_BASE.ipa" ] || cp "xtool/$product.ipa" "xtool/$FILE_BASE.ipa"
           size=$(stat -f%z "xtool/$FILE_BASE.ipa")
           APP_DISPLAY="$display" BUNDLE="$bundle" python3 - "$base/$FILE_BASE.ipa" "$size" "$icon" "$notes" > xtool/source.json <<'PY'
           import json, os, sys, datetime
