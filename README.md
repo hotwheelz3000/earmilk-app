@@ -38,3 +38,12 @@ Each build's file name includes its build number.
 - The version is `CFBundleShortVersionString` in `Earmilk-Info.plist`; the build number is GitHub's run counter, set as `CFBundleVersion` at build time. Both name the release ("Earmilk 1.0 (build 42)") and the file (`Earmilk-1.0-42.ipa`), and show at the bottom of the app's ⋯ menu. Release notes come from `RELEASE_NOTES.md`.
 - The feed URL is `FeedStore.feedURL` in `Sources/Earmilk/FeedStore.swift`.
 - `.claude/skills/using-xtool/` has xtool reference notes for Claude Code.
+
+## Logs and updates
+
+- **Share logs:** shake the phone anywhere in the app to share `app.log`, which includes crashes. Send it along with bug reports.
+- **Update feed:** each release also has `source.json`, an AltStore-format source. Add this URL in a sideloading app that supports sources to see new builds as updates:
+
+```
+https://github.com/hotwheelz3000/earmilk-app/releases/download/latest/source.json
+```
